@@ -1,0 +1,14 @@
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Экспортированные личные данные (пульс, БД Gadgetbridge) — не в git
+data/
+*.db
+*.sqlite
+*.sqlite3
