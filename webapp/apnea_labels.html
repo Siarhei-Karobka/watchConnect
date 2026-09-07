@@ -55,6 +55,8 @@
 
   * { box-sizing: border-box; }
 
+  [hidden] { display: none !important; }
+
   html, body {
     height: 100%;
     overflow: hidden;
@@ -428,6 +430,7 @@
   </div>
   <div class="logpanel-body">
     <div>
+      <p class="empty-log" id="emptyLog" hidden>Пока нет меток — нажмите СТАРТ на главном экране, чтобы отметить первую попытку задержки дыхания.</p>
       <ol class="loglist" id="logList"></ol>
     </div>
     <div class="exportblock">
@@ -461,6 +464,7 @@
     var logPanel = document.getElementById('logPanel');
     var logDateEl = document.getElementById('logDate');
     var logListEl = document.getElementById('logList');
+    var emptyLogEl = document.getElementById('emptyLog');
     var csvOut = document.getElementById('csvOut');
     var copyCsvBtn = document.getElementById('copyCsv');
     var newSessionBtn = document.getElementById('newSession');
@@ -564,15 +568,10 @@
       csvOut.value = toCSV(session);
 
       if (!session.events.length) {
+        emptyLogEl.hidden = false;
         logListEl.innerHTML = '';
-        var empty = document.createElement('p');
-        empty.className = 'empty-log';
-        empty.textContent = 'Пока нет меток — нажмите СТАРТ на главном экране, чтобы отметить первую попытку задержки дыхания.';
-        logListEl.parentNode.insertBefore(empty, logListEl.nextSibling);
-        logListEl.dataset.hasEmpty = '1';
       } else {
-        var existingEmpty = logListEl.parentNode.querySelector('.empty-log');
-        if (existingEmpty) existingEmpty.remove();
+        emptyLogEl.hidden = true;
 
         var rows = session.events.map(function (e, i) {
           var delta = i > 0 ? new Date(e.ts) - new Date(session.events[i - 1].ts) : null;
