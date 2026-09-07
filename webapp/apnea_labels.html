@@ -1,0 +1,636 @@
+<title>Метки апноэ</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #f0f5f4;
+    --surface: #ffffff;
+    --surface-2: #e4eeec;
+    --text: #0f2a28;
+    --text-dim: #5b7876;
+    --border: #d7e4e2;
+    --start: #0f9488;
+    --start-text: #ffffff;
+    --stop: #c2660a;
+    --stop-text: #ffffff;
+    --danger: #b3261e;
+    --danger-text: #ffffff;
+    --focus: #0f9488;
+    --font-sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --font-mono: 'IBM Plex Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0a1a1f;
+      --surface: #12262c;
+      --surface-2: #182f35;
+      --text: #e8f4f2;
+      --text-dim: #8fa8a6;
+      --border: #24403d;
+      --start: #2dd4bf;
+      --start-text: #05201d;
+      --stop: #f5a45d;
+      --stop-text: #2b1700;
+      --danger: #ff6b5e;
+      --danger-text: #2b0400;
+      --focus: #2dd4bf;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #0a1a1f;
+    --surface: #12262c;
+    --surface-2: #182f35;
+    --text: #e8f4f2;
+    --text-dim: #8fa8a6;
+    --border: #24403d;
+    --start: #2dd4bf;
+    --start-text: #05201d;
+    --stop: #f5a45d;
+    --stop-text: #2b1700;
+    --danger: #ff6b5e;
+    --danger-text: #2b0400;
+    --focus: #2dd4bf;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  h1, h2 { text-wrap: balance; margin: 0; }
+
+  button {
+    font-family: inherit;
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: manipulation;
+  }
+
+  button:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: -2px;
+  }
+
+  #app {
+    height: 100dvh;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem;
+    padding: .75rem 1rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    flex: none;
+  }
+
+  .eyebrow {
+    display: block;
+    font-size: .68rem;
+    font-weight: 600;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  .header h1 {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 1.15rem;
+    font-weight: 500;
+    letter-spacing: .02em;
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+  }
+
+  .badge {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-size: .78rem;
+    color: var(--text-dim);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: .3rem .65rem;
+    white-space: nowrap;
+  }
+
+  .btn-ghost {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: .85rem;
+    font-weight: 500;
+    padding: .4rem .75rem;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+  .statusbar {
+    flex: none;
+    padding: .5rem 1rem;
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-size: .82rem;
+    color: var(--text-dim);
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .statusbar strong {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .tapzone {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  button.tap {
+    flex: 1;
+    min-height: 0;
+    border: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: .35rem;
+    cursor: pointer;
+    transition: transform .08s ease;
+  }
+
+  button.tap:active { transform: scale(0.98); }
+
+  .tap-start { background: var(--start); color: var(--start-text); }
+  .tap-stop { background: var(--stop); color: var(--stop-text); border-top: 1px solid rgba(0,0,0,.12); }
+
+  .tap span.label {
+    font-size: clamp(1.6rem, 7vw, 2.4rem);
+    font-weight: 700;
+    letter-spacing: .04em;
+  }
+
+  .tap small {
+    font-size: .85rem;
+    font-weight: 500;
+    opacity: .85;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .flash { animation: flashPulse .35s ease; }
+  }
+  @keyframes flashPulse {
+    0% { filter: brightness(1); }
+    35% { filter: brightness(1.4); }
+    100% { filter: brightness(1); }
+  }
+
+  .logpanel {
+    position: fixed;
+    inset: 0;
+    height: 100dvh;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg);
+    z-index: 10;
+  }
+
+  .logpanel-header {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: .75rem 1rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .logpanel-header h2 {
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .logpanel-header h2 span {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    color: var(--text-dim);
+    font-weight: 400;
+  }
+
+  .logpanel-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .loglist {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .logrow {
+    display: grid;
+    grid-template-columns: 1.75rem auto 1fr auto;
+    align-items: center;
+    gap: .6rem;
+    padding: .55rem 0;
+    border-bottom: 1px solid var(--border);
+    font-size: .88rem;
+  }
+
+  .logrow-index {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    color: var(--text-dim);
+    font-size: .8rem;
+  }
+
+  .logrow-type {
+    font-size: .72rem;
+    font-weight: 600;
+    letter-spacing: .04em;
+    padding: .15rem .5rem;
+    border-radius: 999px;
+    background: var(--surface-2);
+    white-space: nowrap;
+  }
+  .logrow-type.is-start { color: var(--start); background: color-mix(in srgb, var(--start) 18%, transparent); }
+  .logrow-type.is-stop { color: var(--stop); background: color-mix(in srgb, var(--stop) 20%, transparent); }
+
+  .logrow-time {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .logrow-delta {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    color: var(--text-dim);
+    font-size: .8rem;
+    text-align: right;
+  }
+
+  .empty-log {
+    color: var(--text-dim);
+    font-size: .9rem;
+    padding: 1rem 0;
+    max-width: 34ch;
+  }
+
+  .exportblock {
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+  }
+
+  .exportblock label {
+    font-size: .78rem;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  .csvout {
+    width: 100%;
+    resize: vertical;
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: .6rem .7rem;
+    font-family: var(--font-mono);
+    font-size: .82rem;
+    line-height: 1.5;
+  }
+
+  .exportactions {
+    display: flex;
+    gap: .6rem;
+    flex-wrap: wrap;
+  }
+
+  .btn-primary, .btn-danger {
+    border: none;
+    border-radius: 8px;
+    padding: .6rem 1rem;
+    font-size: .88rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .btn-primary { background: var(--start); color: var(--start-text); }
+  .btn-danger { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
+
+  .hint {
+    font-size: .8rem;
+    color: var(--text-dim);
+    max-width: 44ch;
+    line-height: 1.5;
+  }
+
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: 1.25rem;
+    transform: translateX(-50%) translateY(10px);
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: .6rem 1.1rem;
+    border-radius: 999px;
+    font-size: .85rem;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 20;
+    box-shadow: 0 6px 20px rgba(0,0,0,.25);
+    transition: opacity .2s ease, transform .2s ease;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  @media (prefers-reduced-motion: reduce) {
+    .toast { transition: none; }
+  }
+</style>
+
+<div id="app">
+  <header class="header">
+    <div>
+      <span class="eyebrow">Метки апноэ</span>
+      <h1 id="sessionDate">—</h1>
+    </div>
+    <div class="header-actions">
+      <span class="badge" id="countBadge">0 попыток</span>
+      <button class="btn-ghost" id="openLog" type="button">Журнал</button>
+    </div>
+  </header>
+
+  <div class="statusbar" id="statusBar">Ждём первую метку…</div>
+
+  <main class="tapzone">
+    <button class="tap tap-start" id="startBtn" type="button" aria-label="Отметить начало задержки дыхания">
+      <svg width="38" height="38" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M24 6 V27" />
+        <path d="M16 19 L24 27 L32 19" />
+        <path d="M6 39 Q12 33 18 39 T30 39 T42 39" />
+      </svg>
+      <span class="label">СТАРТ</span>
+      <small>начало задержки</small>
+    </button>
+    <button class="tap tap-stop" id="stopBtn" type="button" aria-label="Отметить конец задержки дыхания и всплытие">
+      <svg width="38" height="38" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M24 42 V21" />
+        <path d="M16 29 L24 21 L32 29" />
+        <path d="M6 9 Q12 3 18 9 T30 9 T42 9" />
+      </svg>
+      <span class="label">СТОП</span>
+      <small>всплытие</small>
+    </button>
+  </main>
+</div>
+
+<section class="logpanel" id="logPanel" hidden>
+  <div class="logpanel-header">
+    <h2>Журнал сессии · <span id="logDate">—</span></h2>
+    <button class="btn-ghost" id="closeLog" type="button">Закрыть</button>
+  </div>
+  <div class="logpanel-body">
+    <div>
+      <ol class="loglist" id="logList"></ol>
+    </div>
+    <div class="exportblock">
+      <label for="csvOut">CSV для переноса на компьютер</label>
+      <textarea id="csvOut" class="csvout" rows="6" readonly spellcheck="false"></textarea>
+      <div class="exportactions">
+        <button class="btn-primary" id="copyCsv" type="button">Скопировать CSV</button>
+        <button class="btn-danger" id="newSession" type="button">Новая сессия</button>
+      </div>
+      <p class="hint">Метки хранятся только в этом браузере на телефоне. После тренировки скопируйте CSV сюда же в заметку или сообщение себе и перенесите на компьютер вместе с .fit-файлом.</p>
+      <p class="hint">Совет: добавьте эту страницу на домашний экран (меню браузера → «Добавить на главный экран») — будет открываться одним тапом, как приложение.</p>
+    </div>
+  </div>
+</section>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  (function () {
+    var STORAGE_KEY = 'apneaLog.session.v1';
+    var HISTORY_KEY = 'apneaLog.history.v1';
+    var MAX_HISTORY = 20;
+
+    var startBtn = document.getElementById('startBtn');
+    var stopBtn = document.getElementById('stopBtn');
+    var sessionDateEl = document.getElementById('sessionDate');
+    var countBadge = document.getElementById('countBadge');
+    var statusBar = document.getElementById('statusBar');
+    var openLogBtn = document.getElementById('openLog');
+    var closeLogBtn = document.getElementById('closeLog');
+    var logPanel = document.getElementById('logPanel');
+    var logDateEl = document.getElementById('logDate');
+    var logListEl = document.getElementById('logList');
+    var csvOut = document.getElementById('csvOut');
+    var copyCsvBtn = document.getElementById('copyCsv');
+    var newSessionBtn = document.getElementById('newSession');
+    var toastEl = document.getElementById('toast');
+    var toastTimer = null;
+
+    function todayStr(d) {
+      d = d || new Date();
+      return d.toISOString().slice(0, 10);
+    }
+
+    function newSessionObj() {
+      return { date: todayStr(), startedAt: new Date().toISOString(), events: [] };
+    }
+
+    function loadSession() {
+      try {
+        var raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          var parsed = JSON.parse(raw);
+          if (parsed && Array.isArray(parsed.events)) return parsed;
+        }
+      } catch (e) {}
+      return newSessionObj();
+    }
+
+    function saveSession() {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(session)); } catch (e) {}
+    }
+
+    function pushHistory(s) {
+      if (!s.events.length) return;
+      try {
+        var hist = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+        hist.unshift(s);
+        while (hist.length > MAX_HISTORY) hist.pop();
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(hist));
+      } catch (e) {}
+    }
+
+    var session = loadSession();
+
+    function fmtDateHeader(dateStr) {
+      var parts = dateStr.split('-');
+      if (parts.length !== 3) return dateStr;
+      return parts[2] + '.' + parts[1] + '.' + parts[0];
+    }
+
+    function fmtTime(iso) {
+      var d = new Date(iso);
+      return d.toLocaleTimeString('ru-RU', { hour12: false });
+    }
+
+    function fmtDelta(ms) {
+      var totalSec = Math.round(ms / 1000);
+      var m = Math.floor(totalSec / 60);
+      var s = totalSec % 60;
+      if (m > 0) return m + ':' + String(s).padStart(2, '0');
+      return totalSec + 'с';
+    }
+
+    function toCSV(s) {
+      var lines = ['label,timestamp'];
+      s.events.forEach(function (e) { lines.push(e.type + ',' + e.ts); });
+      return lines.join('\n');
+    }
+
+    function showToast(msg) {
+      toastEl.textContent = msg;
+      toastEl.classList.add('show');
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(function () { toastEl.classList.remove('show'); }, 2200);
+    }
+
+    function flash(btn) {
+      btn.classList.remove('flash');
+      void btn.offsetWidth;
+      btn.classList.add('flash');
+    }
+
+    function vibrate(type) {
+      try {
+        if (navigator.vibrate) navigator.vibrate(type === 'START' ? 40 : [30, 40, 30]);
+      } catch (e) {}
+    }
+
+    function render() {
+      sessionDateEl.textContent = fmtDateHeader(session.date);
+      logDateEl.textContent = fmtDateHeader(session.date);
+
+      var attempts = session.events.filter(function (e) { return e.type === 'START'; }).length;
+      countBadge.textContent = attempts + (attempts === 1 ? ' попытка' : (attempts >= 2 && attempts <= 4 ? ' попытки' : ' попыток'));
+
+      var last = session.events[session.events.length - 1];
+      if (last) {
+        statusBar.innerHTML = 'Последняя метка: <strong>' + (last.type === 'START' ? 'СТАРТ' : 'СТОП') + '</strong> · ' + fmtTime(last.ts);
+      } else {
+        statusBar.textContent = 'Ждём первую метку…';
+      }
+
+      csvOut.value = toCSV(session);
+
+      if (!session.events.length) {
+        logListEl.innerHTML = '';
+        var empty = document.createElement('p');
+        empty.className = 'empty-log';
+        empty.textContent = 'Пока нет меток — нажмите СТАРТ на главном экране, чтобы отметить первую попытку задержки дыхания.';
+        logListEl.parentNode.insertBefore(empty, logListEl.nextSibling);
+        logListEl.dataset.hasEmpty = '1';
+      } else {
+        var existingEmpty = logListEl.parentNode.querySelector('.empty-log');
+        if (existingEmpty) existingEmpty.remove();
+
+        var rows = session.events.map(function (e, i) {
+          var delta = i > 0 ? new Date(e.ts) - new Date(session.events[i - 1].ts) : null;
+          return { n: i + 1, type: e.type, ts: e.ts, delta: delta };
+        }).reverse();
+
+        logListEl.innerHTML = rows.map(function (r) {
+          return '<li class="logrow">' +
+            '<span class="logrow-index">' + r.n + '</span>' +
+            '<span class="logrow-type ' + (r.type === 'START' ? 'is-start' : 'is-stop') + '">' + (r.type === 'START' ? 'старт' : 'стоп') + '</span>' +
+            '<span class="logrow-time">' + fmtTime(r.ts) + '</span>' +
+            '<span class="logrow-delta">' + (r.delta !== null ? '+' + fmtDelta(r.delta) : '—') + '</span>' +
+            '</li>';
+        }).join('');
+      }
+    }
+
+    function logEvent(type) {
+      session.events.push({ type: type, ts: new Date().toISOString() });
+      saveSession();
+      render();
+      flash(type === 'START' ? startBtn : stopBtn);
+      vibrate(type);
+    }
+
+    startBtn.addEventListener('click', function () { logEvent('START'); });
+    stopBtn.addEventListener('click', function () { logEvent('STOP'); });
+
+    openLogBtn.addEventListener('click', function () {
+      render();
+      logPanel.hidden = false;
+    });
+    closeLogBtn.addEventListener('click', function () { logPanel.hidden = true; });
+
+    copyCsvBtn.addEventListener('click', function () {
+      csvOut.focus();
+      csvOut.select();
+      var done = function () { showToast('CSV скопирован в буфер обмена'); };
+      var fallback = function () { showToast('Текст выделен — скопируйте вручную'); };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(csvOut.value).then(done, fallback);
+      } else {
+        try {
+          document.execCommand('copy');
+          done();
+        } catch (e) { fallback(); }
+      }
+    });
+
+    newSessionBtn.addEventListener('click', function () {
+      if (!confirm('Начать новую сессию? Текущие метки сохранятся в истории браузера, но исчезнут с главного экрана.')) return;
+      pushHistory(session);
+      session = newSessionObj();
+      saveSession();
+      render();
+      showToast('Новая сессия начата');
+    });
+
+    render();
+  })();
+</script>
