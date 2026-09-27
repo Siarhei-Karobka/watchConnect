@@ -203,6 +203,7 @@
     font-size: clamp(2.4rem, 11vw, 3.8rem);
     font-weight: 700;
     letter-spacing: .04em;
+    font-variant-numeric: tabular-nums;
   }
 
   .tap small {
@@ -568,16 +569,48 @@
       return (last && last.type === 'START') ? 'holding' : 'ready';
     }
 
+    var stopwatchInterval = null;
+
+    function formatStopwatch(ms) {
+      var totalSec = Math.max(0, Math.floor(ms / 1000));
+      var m = Math.floor(totalSec / 60);
+      var s = totalSec % 60;
+      return m + ':' + String(s).padStart(2, '0');
+    }
+
+    function tickStopwatch() {
+      var last = session.events[session.events.length - 1];
+      if (!last || last.type !== 'START') { stopStopwatch(); return; }
+      toggleLabel.textContent = formatStopwatch(Date.now() - new Date(last.ts).getTime());
+    }
+
+    function startStopwatch() {
+      if (stopwatchInterval) return;
+      tickStopwatch();
+      stopwatchInterval = setInterval(tickStopwatch, 250);
+    }
+
+    function stopStopwatch() {
+      if (!stopwatchInterval) return;
+      clearInterval(stopwatchInterval);
+      stopwatchInterval = null;
+    }
+
     function renderToggle() {
       var mode = currentMode();
       var holding = mode === 'holding';
       toggleBtn.classList.toggle('state-ready', !holding);
       toggleBtn.classList.toggle('state-holding', holding);
-      toggleLabel.textContent = holding ? 'СТОП' : 'СТАРТ';
       toggleSub.textContent = holding ? 'тап — отметить всплытие' : 'тап — начать задержку';
       iconReady.hidden = holding;
       iconHolding.hidden = !holding;
       toggleBtn.setAttribute('aria-label', holding ? 'Отметить конец задержки дыхания и всплытие' : 'Отметить начало задержки дыхания');
+      if (holding) {
+        startStopwatch();
+      } else {
+        stopStopwatch();
+        toggleLabel.textContent = 'СТАРТ';
+      }
     }
 
     function render() {
